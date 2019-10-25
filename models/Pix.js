@@ -9,9 +9,6 @@ const PixSchema = new Schema({
 	title: {
 		type: String
 	},
-	description: {
-		type: String
-	},
 	image: {
 		type: String,
 		required: true

@@ -43,6 +43,54 @@ const UserSchema = new Schema({
 			}
 		}
 	],
+	pix: [
+		{
+			pix: {
+				type: Schema.Types.ObjectId,
+				ref: 'pix'
+			}
+		}
+	],
+	followers: [
+		{
+			follower: {
+				type: Schema.Types.ObjectId,
+				ref: 'users'
+			}
+		}
+	],
+	following: [
+		{
+			following: {
+				type: Schema.Types.ObjectId,
+				ref: 'users'
+			}
+		}
+	],
+	messagesSent: [
+		{
+			user: {
+				type: Schema.Types.ObjectId,
+				ref: 'users'
+			},
+			message: {
+				type: String,
+				required: true
+			}
+		}
+	],
+	messagesReceived: [
+		{
+			user: {
+				type: Schema.Types.ObjectId,
+				ref: 'users'
+			},
+			message: {
+				type: String,
+				required: true
+			}
+		}
+	],
 	profile: {
 		location: {
 			type: String

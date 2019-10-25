@@ -25,9 +25,6 @@ router.post('/upload/:board_id', passport.authenticate('jwt', { session: false }
 			if (req.body.title) {
 				newPix.title = req.body.title;
 			}
-			if (req.body.description) {
-				newPix.description = req.body.description;
-			}
 			newPix.save().then((pix) => {
 				board.pix.push({ pix: pix._id });
 				board.save().then(() => {
@@ -36,7 +33,37 @@ router.post('/upload/:board_id', passport.authenticate('jwt', { session: false }
 			});
 		})
 		.catch(() => {
-			return res.json({ boardNotFound: 'Board Not Found' });
+			return res.json({ boardNotFound: 'Deleted' });
+		});
+});
+
+//@route POST pix/add/:board_id/:pix_id
+//@desc add pix to a board
+//@access Private
+router.post('/add/:board_id/:pix_id', passport.authenticate('jwt', { session: false }), (req, res) => {
+	pix
+		.findOne({ _id: req.params.pix_id })
+		.then((pixData) => {
+			if (!pixData) {
+				throw err;
+			}
+			board
+				.findOne({ _id: req.params.board_id })
+				.then((boardData) => {
+					if (!boardData) {
+						throw err;
+					}
+					boardData.pix.push(pixData._id);
+					boardData.save().then((data) => {
+						res.json({ Data: data });
+					});
+				})
+				.catch(() => {
+					res.json({ boardNotFound: 'Deleted' });
+				});
+		})
+		.catch(() => {
+			res.json({ pixNotFound: 'Deleted' });
 		});
 });
 
@@ -74,7 +101,7 @@ router.post('/heart/:pix_id', passport.authenticate('jwt', { session: false }), 
 			});
 		})
 		.catch(() => {
-			res.json({ pixNotFound: 'Pix Not Found' });
+			res.json({ pixNotFound: 'Deleted' });
 		});
 });
 
@@ -100,7 +127,7 @@ router.delete('/delete/:pix_id', passport.authenticate('jwt', { session: false }
 			});
 		})
 		.catch(() => {
-			return res.json({ pixNotFound: 'Pix Not Found' });
+			return res.json({ pixNotFound: 'Deleted' });
 		});
 });
 
@@ -114,13 +141,13 @@ router.get('/:pix_id', (req, res) => {
 			res.json({ pix: pix });
 		})
 		.catch(() => {
-			return res.status(400).json({ pixNotFound: 'Pix Not Found' });
+			return res.status(400).json({ pixNotFound: 'Deleted' });
 		});
 });
 
 //@route GET pix/all/pix
 //@desc Get all pix
-//@access Public
+//@access Public (Testing only)
 router.get('/all/pix', (req, res) => {
 	pix
 		.find()

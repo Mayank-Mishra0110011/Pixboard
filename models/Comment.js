@@ -6,10 +6,6 @@ const CommentSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: 'pix'
 	},
-	parent: {
-		type: Schema.Types.ObjectId,
-		ref: 'pix'
-	},
 	user: {
 		type: Schema.Types.ObjectId,
 		ref: 'users'
@@ -20,21 +16,9 @@ const CommentSchema = new Schema({
 	profilePicture: {
 		type: String
 	},
-	hearts: [
-		{
-			type: Schema.Types.ObjectId,
-			ref: 'users'
-		}
-	],
 	comment: {
 		type: String
 	},
-	replies: [
-		{
-			type: Schema.Types.ObjectId,
-			ref: 'comments'
-		}
-	],
 	date: {
 		type: Date,
 		default: Date.now

@@ -27,7 +27,25 @@ router.post('/:pix_id', passport.authenticate('jwt', { session: false }), (req, 
 			});
 		})
 		.catch(() => {
-			res.json({ pixNotFound: 'Pix Not Found' });
+			res.json({ pixNotFound: 'Deleted' });
+		});
+});
+
+//@route POST comment/edit/:comment_id
+//@desc Edit a comment
+//@access Private
+router.post('/edit/:comment_id', passport.authenticate('jwt', { session: false }), (req, res) => {
+	if (!req.body.comment || req.body.comment.trim().length == 0) {
+		return res.json({ commentError: 'Cannot post an empty comment' });
+	}
+	const commentData = req.body.comment;
+	comment
+		.findOneAndUpdate({ _id: req.params.comment_id }, { $set: { comment: commentData } }, { new: true })
+		.then((data) => {
+			res.json(data);
+		})
+		.catch(() => {
+			res.json({ commentNotFound: 'Deleted' });
 		});
 });
 
@@ -41,66 +59,12 @@ router.get('/:pix_id', (req, res) => {
 			res.json(commentData);
 		})
 		.catch(() => {
-			res.json({ pixNotFound: 'Pix Not Found' });
-		});
-});
-
-//@route POST comment/heart/:comment_id
-//@desc like a comment
-//@access Private
-router.post('/heart/:comment_id', passport.authenticate('jwt', { session: false }), (req, res) => {
-	comment
-		.findOne({ _id: req.params.comment_id })
-		.then((commentData) => {
-			if (commentData.hearts.filter((heart) => heart.toString() === req.user.id).length > 0) {
-				const removeIndex = commentData.hearts
-					.map((item) => {
-						return item.toString();
-					})
-					.indexOf(req.user.id);
-				commentData.hearts.splice(removeIndex, 1);
-			} else {
-				commentData.hearts.unshift(req.user.id);
-			}
-			commentData.save().then(() => {
-				res.json(commentData);
-			});
-		})
-		.catch(() => res.json({ commentNotFound: 'Comment Not Found' }));
-});
-
-//@route POST comment/reply/:comment_id
-//@desc reply to a comment
-//@access Private
-router.post('/reply/:comment_id', passport.authenticate('jwt', { session: false }), (req, res) => {
-	if (!req.body.reply || req.body.reply.trim().length == 0) {
-		return res.json({ replyError: 'Cannot post an empty reply' });
-	}
-	comment
-		.findOne({ _id: req.params.comment_id })
-		.then((commentData) => {
-			const reply = new Comment({
-				pix: commentData.pix,
-				parent: commentData.id,
-				user: req.user.id,
-				username: req.user.username,
-				profilePicture: req.user.profilePicture,
-				comment: req.body.reply
-			});
-			reply.save().then((replyData) => {
-				commentData.replies.unshift(replyData.id);
-				commentData.save().then((commentData) => {
-					res.json({ commentData: commentData });
-				});
-			});
-		})
-		.catch(() => {
-			res.json({ commentNotFound: 'Comment Not Found' });
+			res.json({ pixNotFound: 'Deleted' });
 		});
 });
 
 //@route GET comment/all/comments
-//@desc Get all comments (dev route)
+//@desc Get all comments (Testing only)
 //@access Public
 router.get('/all/comments', (req, res) => {
 	comment
@@ -109,7 +73,7 @@ router.get('/all/comments', (req, res) => {
 			res.json(commentData);
 		})
 		.catch(() => {
-			res.json({ noCommentsExist: 'No Comments Exist' });
+			res.json({ noCommentsExist: 'Deleted' });
 		});
 });
 
@@ -122,7 +86,7 @@ router.delete('/:comment_id', passport.authenticate('jwt', { session: false }), 
 		.then(() => {
 			res.json({ success: true });
 		})
-		.catch(() => res.json({ commentNotFound: 'Comment Not Found' }));
+		.catch(() => res.json({ commentNotFound: 'Deleted' }));
 });
 
 module.exports = router;

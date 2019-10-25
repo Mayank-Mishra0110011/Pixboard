@@ -53,7 +53,7 @@ router.delete('/delete/:board_id', passport.authenticate('jwt', { session: false
 			});
 		})
 		.catch(() => {
-			return res.json({ boardNotFound: 'Board not found' });
+			return res.json({ boardNotFound: 'Deleted' });
 		});
 });
 
@@ -91,7 +91,7 @@ router.post('/heart/:board_id', passport.authenticate('jwt', { session: false })
 			});
 		})
 		.catch(() => {
-			res.json({ boardNotFound: 'Board Not Found' });
+			res.json({ boardNotFound: 'Deleted' });
 		});
 });
 
@@ -102,10 +102,13 @@ router.get('/:board_id', (req, res) => {
 	board
 		.findOne({ _id: req.params.board_id })
 		.then((board) => {
+			if (!board) {
+				throw err;
+			}
 			res.json({ board: board });
 		})
 		.catch(() => {
-			return res.json({ boardNotFound: 'Board not found' });
+			return res.json({ boardNotFound: 'Deleted' });
 		});
 });
 
