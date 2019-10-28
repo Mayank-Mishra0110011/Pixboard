@@ -5,6 +5,33 @@ const board = require('../models/Board');
 const pix = require('../models/Pix');
 const user = require('../models/User');
 
+//@route GET pix/liked
+//@desc Get Liked boards of user
+//@access Private
+router.get('/liked', passport.authenticate('jwt', { session: false }), (req, res) => {
+	user.findOne({ _id: req.user.id }).then((userData) => {
+		const pixPromise = userData.hearts.pix.map((pixId) => {
+			return new Promise((resolve) => {
+				pix.findOne({ _id: pixId }, [ 'image' ]).then((pixData) => {
+					resolve(pixData);
+				});
+			});
+		});
+		Promise.all(pixPromise).then((pixData) => {
+			res.json({ pixData });
+		});
+	});
+});
+
+//@route GET pix/all
+//@desc Get all pix of user
+//@access Private
+router.get('/all', passport.authenticate('jwt', { session: false }), (req, res) => {
+	pix.find({ username: req.user.username }, [ 'image' ]).then((pixData) => {
+		res.json({ pixData });
+	});
+});
+
 //@route POST pix/upload/:board_id
 //@desc Post pix to a board
 //@access Private

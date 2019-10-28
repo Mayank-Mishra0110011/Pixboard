@@ -161,8 +161,7 @@ router.post('/login', (req, res) => {
 				if (isEqual) {
 					const payload = {
 						id: user.id,
-						username: user.username,
-						profilePicture: user.profilePicture
+						username: user.username
 					};
 					jwt.sign(payload, keys.secretKey, { expiresIn: 86400 }, (err, token) => {
 						res.json({
@@ -341,7 +340,10 @@ router.get('/profile', passport.authenticate('jwt', { session: false }), (req, r
 			'boards',
 			'hearts',
 			'pix',
-			'messages'
+			'messagesSent',
+			'messagesReceived',
+			'followers',
+			'following'
 		])
 		.then((profile) => {
 			if (!profile) throw err;

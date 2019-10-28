@@ -1,10 +1,20 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import logo from '../../img/Untitled.png';
+import { getSearchResults } from '../../actions/searchAction';
 
 class Navbar extends Component {
+	constructor() {
+		super();
+		this.state = {
+			searchQuery: ''
+		};
+		this.handleChange = this.handleChange.bind(this);
+		this.handleSearch = this.handleSearch.bind(this);
+	}
 	handleFocus() {
 		document.getElementById('basic-addon1').style.color = '#e0115f';
 	}
@@ -20,11 +30,21 @@ class Navbar extends Component {
 	hideSidebar() {
 		window.hideSidebar();
 	}
+	handleChange(event) {
+		this.setState({ [event.target.name]: event.target.value });
+	}
+	handleSearch(event) {
+		event.preventDefault();
+		this.props.history.push('/Dashboard');
+		if (this.state.searchQuery.trim() !== '') {
+			this.props.getSearchResults(0, this.state.searchQuery);
+		}
+	}
 	render() {
 		const { isAuthenticated, user } = this.props.auth;
 		const authLinks = (
 			<div className="collapse navbar-collapse" id="navbarSupportedContent">
-				<form className="form-inline my-2 my-lg-0 mr-auto">
+				<form className="form-inline my-2 my-lg-0 mr-auto" onSubmit={this.handleSearch}>
 					<div className="input-group">
 						<div className="input-group-prepend">
 							<span className="input-group-text" id="basic-addon1">
@@ -34,17 +54,19 @@ class Navbar extends Component {
 						<input
 							className="form-control form-control-lg"
 							type="search"
+							name="searchQuery"
 							placeholder="Search"
 							aria-label="Search"
 							onFocus={this.handleFocus}
 							onBlur={this.handleBlur}
+							onChange={this.handleChange}
 						/>
 					</div>
 				</form>
 				<Link className="btn btn-light text-dark my-2 my-sm-0 mr-2 links btn-normal" to="/Dashboard">
 					Home
 				</Link>
-				<Link className="btn btn-light text-dark my-2 my-sm-0 mr-2 links btn-normal" to="">
+				<Link className="btn btn-light text-dark my-2 my-sm-0 mr-2 links btn-normal" to="/Profile">
 					{user.username}
 				</Link>
 				<button
@@ -99,4 +121,4 @@ const mapStateToProps = (state) => ({
 	auth: state.auth
 });
 
-export default connect(mapStateToProps)(Navbar);
+export default connect(mapStateToProps, { getSearchResults })(withRouter(Navbar));

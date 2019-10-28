@@ -14,20 +14,21 @@ class ModalsAndSiderbars extends Component {
 		this.props.logoutUser();
 	}
 	componentDidMount() {
+		document.getElementById('createPixBtn').addEventListener('click', this.rotateBtn);
 		document.getElementById('pixBtn').addEventListener('change', (event) => {
 			if (event.target.files && event.target.files[0]) {
 				const reader = new FileReader();
 				reader.onload = function(e) {
 					document.getElementById('locate').innerText = '';
-					document.getElementById('pix').src = e.target.result;
+					const pix = document.getElementById('pix');
+					pix.src = e.target.result;
+					pix.style.visibility = 'visible';
 				};
 				reader.readAsDataURL(event.target.files[0]);
 			}
 		});
 	}
 	rotateBtn() {
-		console.log('yeet');
-		// Do something about this
 		const btn = document.getElementsByClassName('fa-plus')[0];
 		if (btn.style.transform === '') {
 			btn.style.transform = 'rotate(45deg)';
@@ -231,16 +232,22 @@ class ModalsAndSiderbars extends Component {
 						</div>
 					</div>
 				</div>
-				<div className="btn-group dropleft create" onClick={this.rotateBtn}>
-					<button className="create-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<div className="btn-group dropleft create">
+					<button
+						className="create-btn"
+						id="createPixBtn"
+						data-toggle="dropdown"
+						aria-haspopup="true"
+						aria-expanded="false"
+					>
 						<i className="fas fa-plus" />
 					</button>
 					<div className="dropdown-menu mr-3">
 						<button
+							onClick={this.rotateBtn}
 							className="dropdown-item"
 							data-toggle="modal"
 							data-target="#createPixModal"
-							onClick={this.rotateBtn}
 						>
 							<i className="fas fa-image mr-2" /> Create a pix
 						</button>

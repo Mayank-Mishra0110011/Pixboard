@@ -43,14 +43,6 @@ const UserSchema = new Schema({
 			}
 		}
 	],
-	pix: [
-		{
-			pix: {
-				type: Schema.Types.ObjectId,
-				ref: 'pix'
-			}
-		}
-	],
 	followers: [
 		{
 			follower: {

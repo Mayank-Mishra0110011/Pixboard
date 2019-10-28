@@ -1,12 +1,58 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
+import { connect } from 'react-redux';
+import Spinner from '../layout/Spinner';
+import PropTypes from 'prop-types';
 import ModalsAndSiderbars from '../layout/ModalsAndSiderbars';
 
 class Dashboard extends Component {
 	render() {
-		return (
-			<div>
-				<div className="container-fluid my-4">
+		const { searchResult, loading } = this.props.search;
+		let renderComponent,
+			imgLinks = [ [], [], [], [] ];
+		if (loading) {
+			renderComponent = (
+				<div className="row">
+					<Spinner />
+				</div>
+			);
+		} else {
+			if (searchResult) {
+				// For search result links full page rendering create a new route on backend to render
+				// pix with data passed in query string as anonymous pix without a user.
+				// Or just make a separate frontend private route for anonymous pix rendering
+				for (let i = 0; i < searchResult.data.length - 2; i += 4) {
+					imgLinks[0].push(
+						<a href={searchResult.data[i]} key={i}>
+							<img src={searchResult.data[i]} className="img-fluid mb-4 img-container" alt="pix" />
+						</a>
+					);
+					imgLinks[1].push(
+						<a href={searchResult.data[i]} key={i + 1}>
+							<img src={searchResult.data[i + 1]} className="img-fluid mb-4 img-container" alt="pix" />
+						</a>
+					);
+					imgLinks[2].push(
+						<a href={searchResult.data[i]} key={i + 2}>
+							<img src={searchResult.data[i + 2]} className="img-fluid mb-4 img-container" alt="pix" />
+						</a>
+					);
+					imgLinks[3].push(
+						<a href={searchResult.data[i]} key={i + 3}>
+							<img src={searchResult.data[i + 3]} className="img-fluid mb-4 img-container" alt="pix" />
+						</a>
+					);
+				}
+				renderComponent = (
+					<div className="row">
+						<div className="col-lg-3 col-md-6">{imgLinks[0]}</div>
+						<div className="col-lg-3 col-md-6">{imgLinks[1]}</div>
+						<div className="col-lg-3 col-md-6">{imgLinks[2]}</div>
+						<div className="col-lg-3 col-md-6">{imgLinks[3]}</div>
+					</div>
+				);
+			} else {
+				renderComponent = (
 					<div className="row">
 						<div className="col-lg-3 col-md-6">
 							<Link to="">
@@ -101,6 +147,14 @@ class Dashboard extends Component {
 							</Link>
 						</div>
 					</div>
+				);
+			}
+		}
+
+		return (
+			<div>
+				<div className="container-fluid my-4">
+					{renderComponent}
 					<ModalsAndSiderbars />
 				</div>
 			</div>
@@ -108,4 +162,12 @@ class Dashboard extends Component {
 	}
 }
 
-export default Dashboard;
+Dashboard.propTypes = {
+	search: PropTypes.object.isRequired
+};
+
+const mapStateToProps = (state) => ({
+	search: state.search
+});
+
+export default connect(mapStateToProps)(Dashboard);

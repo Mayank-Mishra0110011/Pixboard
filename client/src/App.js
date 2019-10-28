@@ -4,10 +4,12 @@ import store from './store';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import jwt_decode from 'jwt-decode';
 import { setCurrentUser, logoutUser } from './actions/authAction';
+import { getCurrentUserProfile } from './actions/profileAction';
 import setAuthToken from './utils/setAuthToken';
 import PrivateRoute from './components/layout/PrivateRoute';
 import Landing from './components/layout/Landing';
 import Navbar from './components/layout/Navbar';
+import Profile from './components/dashboard/Profile';
 import SignUp from './components/auth/Signup';
 import Login from './components/auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
@@ -17,6 +19,7 @@ if (localStorage.jwtToken) {
 	setAuthToken(localStorage.jwtToken);
 	const decoded = jwt_decode(localStorage.jwtToken);
 	store.dispatch(setCurrentUser(decoded));
+	getCurrentUserProfile();
 	const currentTime = Date.now() / 1000;
 	if (decoded.exp < currentTime) {
 		store.dispatch(logoutUser());
@@ -37,18 +40,9 @@ function App() {
 						<Switch>
 							<PrivateRoute exact path="/Dashboard" component={Dashboard} />
 						</Switch>
-						{/* <Switch>
-							<PrivateRoute exact path="/create-profile" component={CreateProfile} />
-						</Switch>
 						<Switch>
-							<PrivateRoute exact path="/edit-profile" component={EditProfile} />
+							<PrivateRoute exact path="/Profile" component={Profile} />
 						</Switch>
-						<Switch>
-							<PrivateRoute exact path="/posts" component={Posts} />
-						</Switch>
-						<Switch>
-							<PrivateRoute exact path="/post/:id" component={Post} />
-						</Switch> */}
 					</div>
 				</div>
 			</Router>

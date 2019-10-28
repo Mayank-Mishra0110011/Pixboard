@@ -12,18 +12,23 @@ router.post('/create', passport.authenticate('jwt', { session: false }), (req, r
 	if (!req.body.title) {
 		return res.status(400).json({ title: 'Board needs to have a title' });
 	}
-	user.findOne({ _id: req.user.id }).then((user) => {
-		const newBoard = new Board({
-			user: req.user.id,
-			title: req.body.title
-		});
-		newBoard.save().then((board) => {
-			user.boards.push(board);
-			user.save().then(() => {
-				res.json({ board: board });
+	user
+		.findOne({ _id: req.user.id })
+		.then((user) => {
+			const newBoard = new Board({
+				user: req.user.id,
+				title: req.body.title
 			});
+			newBoard.save().then((board) => {
+				user.boards.push(board);
+				user.save().then(() => {
+					res.json({ board: board });
+				});
+			});
+		})
+		.catch((err) => {
+			console.log(err);
 		});
-	});
 });
 
 //@route DELETE board/delete/:board_id
@@ -55,6 +60,38 @@ router.delete('/delete/:board_id', passport.authenticate('jwt', { session: false
 		.catch(() => {
 			return res.json({ boardNotFound: 'Deleted' });
 		});
+});
+
+//@route GET board/liked
+//@desc GET Liked boards of user
+//@access Private
+router.get('/liked', passport.authenticate('jwt', { session: false }), (req, res) => {
+	user.findOne({ _id: req.user.id }).then((userData) => {
+		const counter = userData.hearts.boards.map((boardId) => {
+			return new Promise((resolve) => {
+				board.findOne({ _id: boardId }).then((boardData) => {
+					if (boardData) {
+						resolve(boardData.pix.length);
+					}
+				});
+			});
+		});
+		const boardPromise = userData.hearts.boards.map((boardId) => {
+			return new Promise((resolve) => {
+				board
+					.findOne({ _id: boardId }, { pix: { $slice: 9 } })
+					.populate('pix.pix', [ 'image' ])
+					.then((boardData) => {
+						resolve(boardData);
+					});
+			});
+		});
+		Promise.all(boardPromise).then((boardData) => {
+			Promise.all(counter).then((counterData) => {
+				res.json({ data: boardData, size: counterData });
+			});
+		});
+	});
 });
 
 //@route POST board/heart/:board_id
@@ -93,6 +130,25 @@ router.post('/heart/:board_id', passport.authenticate('jwt', { session: false })
 		.catch(() => {
 			res.json({ boardNotFound: 'Deleted' });
 		});
+});
+
+//@route GET board/all
+//@desc Get all boards of user
+//@access Private
+router.get('/all', passport.authenticate('jwt', { session: false }), (req, res) => {
+	let counter;
+	board.find({ user: req.user.id }, [ 'pix' ]).then((data) => {
+		counter = data.map((item) => {
+			return new Promise((resolve) => {
+				resolve(item.pix.length);
+			});
+		});
+	});
+	board.find({ user: req.user.id }, { pix: { $slice: 9 } }).populate('pix.pix', [ 'image' ]).then((boardData) => {
+		Promise.all(counter).then((boardSize) => {
+			res.json({ data: boardData, size: boardSize });
+		});
+	});
 });
 
 //@route GET board/:board_id

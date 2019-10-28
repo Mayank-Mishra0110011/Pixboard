@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const user = require('./routes/user');
 const board = require('./routes/board');
 const pix = require('./routes/pix');
+const search = require('./routes/search');
 const comment = require('./routes/comment');
 const path = require('path');
 const app = express();
@@ -35,6 +36,8 @@ app.use('/board', board);
 app.use('/pix', pix);
 
 app.use('/comment', comment);
+
+app.use('/search', search);
 
 if (process.env.NODE_ENV === 'production') {
 	app.use(express.static('client/build'));
