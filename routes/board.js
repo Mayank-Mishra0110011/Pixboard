@@ -9,7 +9,7 @@ const pix = require('../models/Pix');
 //@desc Create a new image board
 //@access Private
 router.post('/create', passport.authenticate('jwt', { session: false }), (req, res) => {
-	if (!req.body.title) {
+	if (!req.body.title || req.body.title.trim() == '') {
 		return res.status(400).json({ title: 'Board needs to have a title' });
 	}
 	user
@@ -22,7 +22,7 @@ router.post('/create', passport.authenticate('jwt', { session: false }), (req, r
 			newBoard.save().then((board) => {
 				user.boards.push(board);
 				user.save().then(() => {
-					res.json({ board: board });
+					res.json({ success: true });
 				});
 			});
 		})
@@ -52,7 +52,7 @@ router.delete('/delete/:board_id', passport.authenticate('jwt', { session: false
 				user.boards.splice(userRemoveIndex, 1);
 				user.save().then(() => {
 					board.findOneAndRemove({ _id: req.params.board_id }).then(() => {
-						res.json({ succes: true });
+						res.json({ success: true });
 					});
 				});
 			});
@@ -144,11 +144,21 @@ router.get('/all', passport.authenticate('jwt', { session: false }), (req, res) 
 			});
 		});
 	});
-	board.find({ user: req.user.id }, { pix: { $slice: 9 } }).populate('pix.pix', [ 'image' ]).then((boardData) => {
-		Promise.all(counter).then((boardSize) => {
-			res.json({ data: boardData, size: boardSize });
+	board
+		.find({ user: req.user.id })
+		.then(() => {
+			board
+				.find({ user: req.user.id }, { pix: { $slice: 9 } })
+				.populate('pix.pix', [ 'image' ])
+				.then((boardData) => {
+					Promise.all(counter).then((boardSize) => {
+						res.json({ data: boardData, size: boardSize });
+					});
+				});
+		})
+		.catch(() => {
+			res.json({ data: null, size: [] });
 		});
-	});
 });
 
 //@route GET board/:board_id

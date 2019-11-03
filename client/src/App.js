@@ -10,6 +10,7 @@ import PrivateRoute from './components/layout/PrivateRoute';
 import Landing from './components/layout/Landing';
 import Navbar from './components/layout/Navbar';
 import Profile from './components/dashboard/Profile';
+import Pix from './components/layout/Pix';
 import SignUp from './components/auth/Signup';
 import Login from './components/auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
@@ -23,7 +24,7 @@ if (localStorage.jwtToken) {
 	const currentTime = Date.now() / 1000;
 	if (decoded.exp < currentTime) {
 		store.dispatch(logoutUser());
-		window.location.href = '/Login';
+		window.location.href = '/';
 	}
 }
 
@@ -42,6 +43,9 @@ function App() {
 						</Switch>
 						<Switch>
 							<PrivateRoute exact path="/Profile" component={Profile} />
+						</Switch>
+						<Switch>
+							<PrivateRoute exact path="/Pix" component={Pix} />
 						</Switch>
 					</div>
 				</div>

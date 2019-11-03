@@ -3,10 +3,12 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
 import { loginUser } from '../../actions/authAction';
+import { getDashboardSearchResults } from '../../actions/searchAction';
 
 class Login extends Component {
 	constructor() {
 		super();
+		Login.getDerivedStateFromProps = Login.getDerivedStateFromProps.bind(this);
 		this.state = {
 			email: '',
 			password: '',
@@ -30,6 +32,22 @@ class Login extends Component {
 	}
 	static getDerivedStateFromProps(nextProps, previousState) {
 		if (nextProps.auth.isAuthenticated) {
+			const months = [
+				'January',
+				'February',
+				'March',
+				'April',
+				'May',
+				'June',
+				'July',
+				'August',
+				'September',
+				'October',
+				'November',
+				'December'
+			];
+			const date = new Date();
+			this.props.getDashboardSearchResults(0, months[date.getMonth()]);
 			nextProps.history.push('/Dashboard');
 		}
 		if (nextProps.errors !== previousState.errors) {
@@ -124,4 +142,4 @@ const mapStateToProps = (state) => ({
 	errors: state.errors
 });
 
-export default connect(mapStateToProps, { loginUser })(Login);
+export default connect(mapStateToProps, { loginUser, getDashboardSearchResults })(Login);

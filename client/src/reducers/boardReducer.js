@@ -1,10 +1,18 @@
-import { GET_BOARD, BOARD_LOADING, GET_LIKED_BOARD, USER_LIKED_BOARD_LOADING } from '../actions/types';
+import {
+	GET_BOARD,
+	BOARD_LOADING,
+	GET_LIKED_BOARD,
+	USER_LIKED_BOARD_LOADING,
+	BOARD_CREATED,
+	CANCEL_BOARD_CREATED
+} from '../actions/types';
 
 const intialState = {
 	likedBoard: null,
 	board: null,
 	boardLoading: false,
-	likedBoardLoading: false
+	likedBoardLoading: false,
+	boardCreated: false
 };
 
 export default function(state = intialState, action) {
@@ -18,6 +26,16 @@ export default function(state = intialState, action) {
 			return {
 				...state,
 				likedBoardLoading: true
+			};
+		case BOARD_CREATED:
+			return {
+				...state,
+				boardCreated: true
+			};
+		case CANCEL_BOARD_CREATED:
+			return {
+				...state,
+				boardCreated: false
 			};
 		case GET_BOARD:
 			return {

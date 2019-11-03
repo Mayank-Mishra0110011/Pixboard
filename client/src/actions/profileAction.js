@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GET_PROFILE, PROFILE_LOADING, CLEAR_CURRENT_PROFILE, GET_ERRORS } from './types';
+import { GET_PROFILE, PROFILE_LOADING, CLEAR_CURRENT_PROFILE, GET_ERRORS, FOLLOW_ACTION } from './types';
 
 export const getCurrentUserProfile = () => (dispatch) => {
 	dispatch(setProfileLoading());
@@ -17,6 +17,15 @@ export const getCurrentUserProfile = () => (dispatch) => {
 				payload: {}
 			});
 		});
+};
+
+export const follow = (id) => (dispatch) => {
+	axios.post(`user/follow/${id}`).then((res) => {
+		dispatch({
+			type: FOLLOW_ACTION,
+			payload: res.data
+		});
+	});
 };
 
 export const setProfileLoading = () => {

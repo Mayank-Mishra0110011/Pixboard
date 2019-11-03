@@ -1,19 +1,51 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
+import classnames from 'classnames';
 import PropTypes from 'prop-types';
 import { logoutUser } from '../../actions/authAction';
+import { createBoard, getUserBoard, cancelBoardCreated, cancelTitle } from '../../actions/boardAction';
 
 class ModalsAndSiderbars extends Component {
 	constructor() {
 		super();
+		this.state = {
+			boardTitle: '',
+			pixURL: '',
+			pixTitle: '',
+			errors: {}
+		};
 		this.onLogoutClick = this.onLogoutClick.bind(this);
+		this.createBoard = this.createBoard.bind(this);
+		this.cancelBoard = this.cancelBoard.bind(this);
+		this.handleChange = this.handleChange.bind(this);
+	}
+	cancelBoard() {
+		this.setState({ boardTitle: '' });
+		this.props.cancelTitle();
+		this.props.cancelBoardCreated();
+	}
+	static getDerivedStateFromProps(nextProps, previousState) {
+		if (nextProps.errors !== previousState.errors) {
+			return { errors: nextProps.errors };
+		}
+		return null;
 	}
 	onLogoutClick(event) {
 		event.preventDefault();
 		this.props.logoutUser();
+		this.props.history.push('/');
+	}
+	handleChange(event) {
+		this.setState({ [event.target.name]: event.target.value });
+	}
+	createBoard(event) {
+		event.preventDefault();
+		this.props.createBoard({ title: this.state.boardTitle });
+		this.props.getUserBoard();
 	}
 	componentDidMount() {
+		this.props.getUserBoard();
 		document.getElementById('createPixBtn').addEventListener('click', this.rotateBtn);
 		document.getElementById('pixBtn').addEventListener('change', (event) => {
 			if (event.target.files && event.target.files[0]) {
@@ -40,6 +72,18 @@ class ModalsAndSiderbars extends Component {
 		document.getElementById('pixBtn').click();
 	}
 	render() {
+		const { errors } = this.state;
+		const { boardCreated, board } = this.props.board;
+		let boardOptions = [];
+		if (board) {
+			for (let i = 0; i < board.data.length; i++) {
+				boardOptions.push(
+					<option value={board.data[i]._id} key={i}>
+						{board.data[i].title}
+					</option>
+				);
+			}
+		}
 		return (
 			<div>
 				<div className="sidebar" id="messagesSidebar">
@@ -271,13 +315,31 @@ class ModalsAndSiderbars extends Component {
 								</button>
 							</div>
 							<div className="modal-body">
-								<input type="text" className="form-control" id="pixTitle" placeholder="Board Title" />
+								<input
+									type="text"
+									className={classnames('form-control', {
+										'is-invalid': errors.title
+									})}
+									name="boardTitle"
+									placeholder="Board Title"
+									onChange={this.handleChange}
+									value={this.state.boardTitle}
+								/>
+								{!boardCreated &&
+								errors.title && <div className="invalid-feedback">{errors.title}</div>}
+								{boardCreated ? <div className="text-success mt-2">Board Created!!</div> : null}
 							</div>
 							<div className="modal-footer">
-								<button type="button" className="btn btn-primary" data-dismiss="modal">
+								<button
+									type="button"
+									className="btn btn-primary"
+									data-dismiss="modal"
+									id="boardCancel"
+									onClick={this.cancelBoard}
+								>
 									Cancel
 								</button>
-								<button type="button" className="btn btn-success" data-dismiss="modal">
+								<button type="button" className="btn btn-success" onClick={this.createBoard}>
 									Create
 								</button>
 							</div>
@@ -297,11 +359,9 @@ class ModalsAndSiderbars extends Component {
 								<div className="container">
 									<div className="row">
 										<div className="col-12">
-											<select className="custom-select">
+											<select className="custom-select" id="boardOptions">
 												<option defaultValue>Save to Board</option>
-												<option value="1">Board 1</option>
-												<option value="2">Board 2</option>
-												<option value="3">Board 3</option>
+												{boardOptions}
 											</select>
 										</div>
 									</div>
@@ -310,10 +370,27 @@ class ModalsAndSiderbars extends Component {
 											<input
 												type="text"
 												className="form-control"
-												id="pixTitle"
+												name="pixTitle"
+												value={this.state.pixTitle}
+												onChange={this.handleChange}
 												placeholder="Pix Title"
 											/>
 										</div>
+									</div>
+									<div className="row mt-4">
+										<div className="col-12">
+											<input
+												type="text"
+												className="form-control"
+												name="pixURL"
+												value={this.state.pixURL}
+												onChange={this.handleChange}
+												placeholder="Pix URL"
+											/>
+										</div>
+									</div>
+									<div className="row mt-4 justify-content-center">
+										<h2>Or</h2>
 									</div>
 									<div className="row mt-4 justify-content-center">
 										<div className="col-11">
@@ -360,9 +437,17 @@ class ModalsAndSiderbars extends Component {
 }
 
 ModalsAndSiderbars.propTypes = {
-	logoutUser: PropTypes.func.isRequired
+	logoutUser: PropTypes.func.isRequired,
+	createBoard: PropTypes.func.isRequired,
+	errors: PropTypes.object.isRequired,
+	board: PropTypes.object.isRequired
 };
 
-const mapStateToProps = () => ({});
+const mapStateToProps = (state) => ({
+	errors: state.errors,
+	board: state.board
+});
 
-export default connect(mapStateToProps, { logoutUser })(ModalsAndSiderbars);
+export default connect(mapStateToProps, { logoutUser, createBoard, getUserBoard, cancelBoardCreated, cancelTitle })(
+	withRouter(ModalsAndSiderbars)
+);

@@ -227,21 +227,40 @@ class Profile extends Component {
 							</div>
 						);
 					}
-					boardColumnLinks.push(
-						<Link
-							className="col-lg-3 col-md-3 col-sm-5 col-10 board mt-5 text-decoration-none text-dark"
-							to=""
-							key={i}
-						>
-							<div className="row mt-2 px-1">
-								<div>
-									<h3>{board.data[i].title}</h3>
-									<p>{board.size[i]} Pix</p>
+					if (board.data[i].pix.length === 0) {
+						boardColumnLinks.push(
+							<Link
+								className="col-lg-3 col-md-3 col-sm-5 col-10 board mt-5 text-decoration-none text-dark"
+								style={{ minWidth: '10rem' }}
+								to=""
+								key={i}
+							>
+								<div className="row mt-2 px-1">
+									<div>
+										<h3>{board.data[i].title}</h3>
+										<p>{board.size[i]} Pix</p>
+									</div>
 								</div>
-							</div>
-							<div className="row">{boardRowLinks}</div>
-						</Link>
-					);
+								<div className="row">{boardRowLinks}</div>
+							</Link>
+						);
+					} else {
+						boardColumnLinks.push(
+							<Link
+								className="col-lg-3 col-md-3 col-sm-5 col-10 board mt-5 text-decoration-none text-dark"
+								to=""
+								key={i}
+							>
+								<div className="row mt-2 px-1">
+									<div>
+										<h3>{board.data[i].title}</h3>
+										<p>{board.size[i]} Pix</p>
+									</div>
+								</div>
+								<div className="row">{boardRowLinks}</div>
+							</Link>
+						);
+					}
 					boardRowLinks = [];
 					if ((i % 2 === 0 && i !== 0) || i === board.data.length - 1) {
 						boardDiv.push(
@@ -275,13 +294,13 @@ class Profile extends Component {
 			) {
 				socialLinks = (
 					<p>
-						<a className="highlight-link p-2" href={user.profile.social.twitter}>
+						<a className="highlight-link p-2" href={profile.profile.social.twitter}>
 							<i className="fab fa-twitter fa-2x" />
 						</a>
-						<a className="highlight-link p-2" href={user.profile.social.facebook}>
+						<a className="highlight-link p-2" href={profile.profile.social.facebook}>
 							<i className="fab fa-facebook fa-2x" />
 						</a>
-						<a className="highlight-link p-2" href={user.profile.social.instagram}>
+						<a className="highlight-link p-2" href={profile.profile.social.instagram}>
 							<i className="fab fa-instagram fa-2x" />
 						</a>
 					</p>
@@ -317,13 +336,15 @@ class Profile extends Component {
 								</div>
 								<div className="text-center text-dark">
 									<h1 className="display-4 text-center">{user.username}</h1>
-									<p>
-										<i className="fas fa-map-marker-alt mr-2" />
-										{profile.profile.location}
-									</p>
+									{profile.profile.location ? (
+										<p>
+											<i className="fas fa-map-marker-alt mr-2" />
+											{profile.profile.location}
+										</p>
+									) : null}
 									{socialLinks}
 								</div>
-								<div className="text-center text-dark">
+								<div className="text-center text-dark mt-3">
 									<p>
 										<Link className="p-4 highlight-link" to="">
 											{profile.followers.length} Followers
@@ -333,10 +354,14 @@ class Profile extends Component {
 										</Link>
 									</p>
 								</div>
-								<hr />
-								<div className="text-center text-dark">
-									<p className="lead">{profile.profile.bio}</p>
-								</div>
+								{profile.profile.bio ? (
+									<div>
+										<hr />
+										<div className="text-center text-dark">
+											<p className="lead">{profile.profile.bio}</p>
+										</div>
+									</div>
+								) : null}
 							</div>
 						</div>
 					</div>

@@ -8,6 +8,16 @@ window.onload = function() {
 	}
 };
 
+function colorize() {
+	const imgContainer = this.document.getElementsByClassName('img-container');
+	for (let img of imgContainer) {
+		let r = this.random(0, 256).toString(16);
+		let g = this.random(0, 256).toString(16);
+		let b = this.random(0, 256).toString(16);
+		img.style.color = '#' + r + g + b;
+	}
+}
+
 function random(min, max) {
 	return Math.floor(Math.random() * max + min);
 }

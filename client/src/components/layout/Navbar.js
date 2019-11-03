@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import logo from '../../img/Untitled.png';
-import { getSearchResults } from '../../actions/searchAction';
+import { getSearchResults, getDashboardSearchResults } from '../../actions/searchAction';
 
 class Navbar extends Component {
 	constructor() {
@@ -14,6 +14,7 @@ class Navbar extends Component {
 		};
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSearch = this.handleSearch.bind(this);
+		this.backToDashboard = this.backToDashboard.bind(this);
 	}
 	handleFocus() {
 		document.getElementById('basic-addon1').style.color = '#e0115f';
@@ -35,10 +36,39 @@ class Navbar extends Component {
 	}
 	handleSearch(event) {
 		event.preventDefault();
-		this.props.history.push('/Dashboard');
 		if (this.state.searchQuery.trim() !== '') {
+			this.props.history.push(`/Dashboard?q=${this.state.searchQuery}`);
 			this.props.getSearchResults(0, this.state.searchQuery);
 		}
+	}
+	componentDidMount() {
+		if (this.props.auth.isAuthenticated) {
+			if (window.location.href.includes('?q=')) {
+				this.props.getSearchResults(0, window.location.href.split('?q=')[1]);
+			} else if (localStorage.getItem('backTo')) {
+				this.props.getSearchResults(0, localStorage.getItem('backTo').split('?q=')[1]);
+			} else {
+				this.backToDashboard();
+			}
+		}
+	}
+	backToDashboard() {
+		const months = [
+			'January',
+			'February',
+			'March',
+			'April',
+			'May',
+			'June',
+			'July',
+			'August',
+			'September',
+			'October',
+			'November',
+			'December'
+		];
+		const date = new Date();
+		this.props.getDashboardSearchResults(0, months[date.getMonth()]);
 	}
 	render() {
 		const { isAuthenticated, user } = this.props.auth;
@@ -63,7 +93,11 @@ class Navbar extends Component {
 						/>
 					</div>
 				</form>
-				<Link className="btn btn-light text-dark my-2 my-sm-0 mr-2 links btn-normal" to="/Dashboard">
+				<Link
+					className="btn btn-light text-dark my-2 my-sm-0 mr-2 links btn-normal"
+					to="/Dashboard"
+					onClick={this.backToDashboard}
+				>
 					Home
 				</Link>
 				<Link className="btn btn-light text-dark my-2 my-sm-0 mr-2 links btn-normal" to="/Profile">
@@ -90,11 +124,18 @@ class Navbar extends Component {
 				</Link>
 			</div>
 		);
+		let logoLink = isAuthenticated ? (
+			<Link className="navbar-brand pr-5" to="/" onClick={this.backToDashboard}>
+				<img src={logo} className="logo" alt="logo" />
+			</Link>
+		) : (
+			<Link className="navbar-brand pr-5" to="/">
+				<img src={logo} className="logo" alt="logo" />
+			</Link>
+		);
 		return (
 			<nav className="navbar sticky-top navbar-expand-lg navbar-light bg-light">
-				<Link className="navbar-brand pr-5" to="/">
-					<img src={logo} className="logo" alt="logo" />
-				</Link>
+				{logoLink}
 				<button
 					className="navbar-toggler"
 					type="button"
@@ -121,4 +162,4 @@ const mapStateToProps = (state) => ({
 	auth: state.auth
 });
 
-export default connect(mapStateToProps, { getSearchResults })(withRouter(Navbar));
+export default connect(mapStateToProps, { getSearchResults, getDashboardSearchResults })(withRouter(Navbar));

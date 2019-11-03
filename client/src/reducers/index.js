@@ -5,6 +5,7 @@ import pixReducer from './pixReducer';
 import boardReducer from './boardReducer';
 import profileReducer from './profileReducer';
 import searchReducer from './searchReducer';
+import externalPixReducer from './externaPixReducer';
 
 export default combineReducers({
 	auth: authReducer,
@@ -12,5 +13,6 @@ export default combineReducers({
 	pix: pixReducer,
 	board: boardReducer,
 	errors: errorReducer,
-	search: searchReducer
+	search: searchReducer,
+	externalPix: externalPixReducer
 });
