@@ -45,7 +45,7 @@ class Navbar extends Component {
 		if (this.props.auth.isAuthenticated) {
 			if (window.location.href.includes('?q=')) {
 				this.props.getSearchResults(0, window.location.href.split('?q=')[1]);
-			} else if (localStorage.getItem('backTo')) {
+			} else if (localStorage.getItem('backTo') && localStorage.getItem('backTo').includes('?q')) {
 				this.props.getSearchResults(0, localStorage.getItem('backTo').split('?q=')[1]);
 			} else {
 				this.backToDashboard();

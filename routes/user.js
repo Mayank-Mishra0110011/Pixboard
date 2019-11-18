@@ -21,9 +21,6 @@ router.post('/profile', passport.authenticate('jwt', { session: false }), (req, 
 		userFields.username = req.body.username;
 	}
 	if (req.body.profilePicture) {
-		if (!validator.isURL(req.body.profilePicture)) {
-			return res.status(400).json({ profilePicture: 'Invalid Profile Picture' });
-		}
 		userFields.profilePicture = req.body.profilePicture;
 	}
 	user.findOne({ _id: req.user.id }).then((data) => {
@@ -190,19 +187,31 @@ router.delete('/profile', passport.authenticate('jwt', { session: false }), (req
 	});
 });
 
+//@route GET user/message
+//@desc Get User's messages
+//@access Private
+router.get('/message', passport.authenticate('jwt', { session: false }), (req, res) => {
+	user
+		.findOne({ _id: req.user.id }, [ 'messagesSent', 'messagesReceived' ])
+		.populate('messagesReceived.user', [ 'username' ])
+		.then((data) => {
+			res.json(data);
+		});
+});
+
 //@route POST user/message
 //@desc Send Message to another user
 //@access Private
 router.post('/message', passport.authenticate('jwt', { session: false }), (req, res) => {
 	if (!req.body.message) {
-		res.json({ messageError: 'Message body is required' });
+		return res.status(400).json({ message: 'Message body is required' });
 	} else if (req.body.email || req.body.username) {
 		if (req.body.message.trim() == '') {
-			res.json({ messageError: 'Cannot send an empty message' });
+			res.status(400).json({ message: 'Cannot send an empty message' });
 		}
 		if (req.body.username) {
 			if (req.body.username.trim().toLowerCase() == '') {
-				res.json({ messageError: 'Invalid username' });
+				res.status(400).json({ username: 'Invalid username' });
 			}
 			user
 				.findOne({ username: req.body.username })
@@ -224,37 +233,11 @@ router.post('/message', passport.authenticate('jwt', { session: false }), (req, 
 					});
 				})
 				.catch(() => {
-					res.json({ messageError: 'Invalid username' });
-				});
-		} else {
-			if (req.body.email.trim().toLowerCase() == '') {
-				res.json({ messageError: 'Invalid email' });
-			}
-			user
-				.findOne({ email: req.body.email })
-				.then((userData) => {
-					userData.messagesReceived.push({
-						user: req.user._id,
-						message: req.body.message
-					});
-					userData.save().then((data) => {
-						user.findOne({ _id: req.user.id }).then((senderData) => {
-							senderData.messagesSent.push({
-								user: userData.id,
-								message: req.body.message
-							});
-							senderData.save().then(() => {
-								res.json({ messageSuceess: 'Message Sent!' });
-							});
-						});
-					});
-				})
-				.catch(() => {
-					res.json({ messageError: 'Invalid email' });
+					res.status(400).json({ username: 'Invalid username' });
 				});
 		}
 	} else {
-		res.json({ messageError: 'Username or Email is required' });
+		res.status(400).json({ username: 'Username is required' });
 	}
 });
 
@@ -340,8 +323,6 @@ router.get('/profile', passport.authenticate('jwt', { session: false }), (req, r
 			'boards',
 			'hearts',
 			'pix',
-			'messagesSent',
-			'messagesReceived',
 			'followers',
 			'following'
 		])

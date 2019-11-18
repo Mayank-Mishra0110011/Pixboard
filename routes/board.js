@@ -161,16 +161,14 @@ router.get('/all', passport.authenticate('jwt', { session: false }), (req, res) 
 		});
 });
 
-//@route GET board/:board_id
+//@route GET board/complete/:board_id
 //@desc Get board by id
 //@access Public
-router.get('/:board_id', (req, res) => {
+router.get('complete/:board_id', (req, res) => {
 	board
 		.findOne({ _id: req.params.board_id })
+		.populate('pix.pix', [ 'image' ])
 		.then((board) => {
-			if (!board) {
-				throw err;
-			}
 			res.json({ board: board });
 		})
 		.catch(() => {

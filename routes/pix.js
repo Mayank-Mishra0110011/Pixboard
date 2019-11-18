@@ -36,12 +36,11 @@ router.get('/all', passport.authenticate('jwt', { session: false }), (req, res) 
 //@desc Post pix to a board
 //@access Private
 router.post('/upload/:board_id', passport.authenticate('jwt', { session: false }), (req, res) => {
-	if (!req.body.image) {
+	if (!req.body.image || (req.body.image && req.body.image.trim() == '')) {
 		return res.status(400).json({ image: 'Pix should be an image or an image url' });
 	}
 	board
 		.findOne({ _id: req.params.board_id })
-		.populate('user', [ 'username', 'profilePicture' ])
 		.then((board) => {
 			const newPix = new Pix({
 				board: board.id,
@@ -60,7 +59,22 @@ router.post('/upload/:board_id', passport.authenticate('jwt', { session: false }
 			});
 		})
 		.catch(() => {
-			return res.json({ boardNotFound: 'Deleted' });
+			return res.status(404).json({ boardNotFound: 'Board Not Found' });
+		});
+});
+
+//@route POST pix/anonymous
+//@desc Get anonymous pix from database
+//@access Private
+router.post('/anonymous', passport.authenticate('jwt', { session: false }), (req, res) => {
+	pix
+		.findOne({ image: req.body.image })
+		.populate('comments', [ 'user', 'comment', 'profilePicture' ])
+		.then((pixData) => {
+			res.json(pixData);
+		})
+		.catch(() => {
+			res.status(404).json({ pixNotFound: 'Pix Not Found' });
 		});
 });
 
@@ -98,9 +112,44 @@ router.post('/add/:board_id/:pix_id', passport.authenticate('jwt', { session: fa
 //@desc like a pix
 //@access Private
 router.post('/heart/:pix_id', passport.authenticate('jwt', { session: false }), (req, res) => {
-	pix
-		.findOne({ _id: req.params.pix_id })
-		.then((foundPix) => {
+	if (req.params.pix_id == 'none') {
+		const newPix = new Pix({
+			board: '5dcc618d1a1e3f2e4e2d0937',
+			image: req.body.image,
+			username: '',
+			profilePicture: ''
+		});
+		newPix.save().then((pixData) => {
+			pix.findOne({ _id: pixData._id }).then((foundPix) => {
+				user.findOne({ _id: req.user.id }).then((userData) => {
+					if (foundPix.hearts.filter((heart) => heart.toString() === req.user.id).length > 0) {
+						const removeIndex = foundPix.hearts
+							.map((item) => {
+								return item.toString();
+							})
+							.indexOf(req.user.id);
+						const userDataRemoveIndex = userData.hearts.pix
+							.map((item) => {
+								return item.id.toString();
+							})
+							.indexOf(req.params.pix_id);
+						userData.hearts.pix.splice(userDataRemoveIndex, 1);
+						userData.save().then(() => {
+							foundPix.hearts.splice(removeIndex, 1);
+							foundPix.save().then(() => res.json({ success: true }));
+						});
+					} else {
+						userData.hearts.pix.unshift(foundPix);
+						userData.save().then(() => {
+							foundPix.hearts.unshift(userData.id);
+							foundPix.save().then(() => res.json({ success: true }));
+						});
+					}
+				});
+			});
+		});
+	} else {
+		pix.findOne({ _id: req.params.pix_id }).then((foundPix) => {
 			user.findOne({ _id: req.user.id }).then((userData) => {
 				if (foundPix.hearts.filter((heart) => heart.toString() === req.user.id).length > 0) {
 					const removeIndex = foundPix.hearts
@@ -116,20 +165,18 @@ router.post('/heart/:pix_id', passport.authenticate('jwt', { session: false }), 
 					userData.hearts.pix.splice(userDataRemoveIndex, 1);
 					userData.save().then(() => {
 						foundPix.hearts.splice(removeIndex, 1);
-						foundPix.save().then((foundPix) => res.json(foundPix));
+						foundPix.save().then(() => res.json({ success: true }));
 					});
 				} else {
 					userData.hearts.pix.unshift(foundPix);
 					userData.save().then(() => {
 						foundPix.hearts.unshift(userData.id);
-						foundPix.save().then((foundPix) => res.json(foundPix));
+						foundPix.save().then(() => res.json({ success: true }));
 					});
 				}
 			});
-		})
-		.catch(() => {
-			res.json({ pixNotFound: 'Deleted' });
 		});
+	}
 });
 
 //@route DELETE pix/delete/:pix_id

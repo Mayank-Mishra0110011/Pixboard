@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
 import { logoutUser } from '../../actions/authAction';
+import { cancelPixUpload, uploadPix, getUserPix, unsetPixUrlAsImageUrl } from '../../actions/pixAction';
 import { createBoard, getUserBoard, cancelBoardCreated, cancelTitle } from '../../actions/boardAction';
+import { deleteAccount } from '../../actions/profileAction';
+import { getMessage, sendMessage, unsetMessageSent } from '../../actions/messageAction';
 
 class ModalsAndSiderbars extends Component {
 	constructor() {
@@ -12,24 +15,80 @@ class ModalsAndSiderbars extends Component {
 		this.state = {
 			boardTitle: '',
 			pixURL: '',
+			pixDataURL: '',
 			pixTitle: '',
+			message: '',
+			receiver: '',
+			sender: '',
+			mainMessage: '',
 			errors: {}
 		};
 		this.onLogoutClick = this.onLogoutClick.bind(this);
 		this.createBoard = this.createBoard.bind(this);
 		this.cancelBoard = this.cancelBoard.bind(this);
 		this.handleChange = this.handleChange.bind(this);
+		this.handlePixChange = this.handlePixChange.bind(this);
+		this.uploadPix = this.uploadPix.bind(this);
+		this.cancelPix = this.cancelPix.bind(this);
+		this.deleteAccount = this.deleteAccount.bind(this);
+		this.sendMessage = this.sendMessage.bind(this);
+	}
+	deleteAccount() {
+		localStorage.removeItem('jwtToken');
+		this.props.deleteAccount();
+	}
+	sendMessage() {
+		const messageData = {
+			username: this.state.receiver,
+			message: this.state.message
+		};
+		this.props.sendMessage(messageData);
+	}
+	handlePixChange(event) {
+		if (event.target.files && event.target.files[0]) {
+			const reader = new FileReader();
+			reader.onload = function(e) {
+				document.getElementById('locate').innerText = '';
+				const pix = document.getElementById('pix');
+				pix.src = e.target.result;
+				this.setState({ pixDataURL: e.target.result });
+				document.getElementById('pixURL').disabled = true;
+				pix.style.visibility = 'visible';
+			};
+			reader.onload = reader.onload.bind(this);
+			reader.readAsDataURL(event.target.files[0]);
+		}
 	}
 	cancelBoard() {
 		this.setState({ boardTitle: '' });
 		this.props.cancelTitle();
 		this.props.cancelBoardCreated();
 	}
+	cancelPix() {
+		document.getElementById('boardOptions').value = 'Save to Board';
+		document.getElementById('pix').src = '';
+		document.getElementById('pix').style.visibility = 'hidden';
+		document.getElementById('pixURL').disabled = false;
+		document.getElementById('locate').innerText = 'Click to locate pix';
+		this.setState({ pixURL: '', pixTitle: '', pixDataURL: '' });
+		this.props.cancelPixUpload();
+	}
 	static getDerivedStateFromProps(nextProps, previousState) {
 		if (nextProps.errors !== previousState.errors) {
 			return { errors: nextProps.errors };
 		}
 		return null;
+	}
+	uploadPix(event) {
+		event.preventDefault();
+		if (this.state.pixURL.trim() !== '') {
+			this.props.uploadPix(document.getElementById('boardOptions').value, this.state.pixURL);
+		} else if (this.state.pixDataURL.trim() !== '') {
+			this.props.uploadPix(document.getElementById('boardOptions').value, this.state.pixDataURL);
+		} else {
+			this.props.uploadPix(null, null);
+		}
+		this.props.getUserPix();
 	}
 	onLogoutClick(event) {
 		event.preventDefault();
@@ -46,19 +105,15 @@ class ModalsAndSiderbars extends Component {
 	}
 	componentDidMount() {
 		this.props.getUserBoard();
+		this.props.getMessage();
 		document.getElementById('createPixBtn').addEventListener('click', this.rotateBtn);
-		document.getElementById('pixBtn').addEventListener('change', (event) => {
-			if (event.target.files && event.target.files[0]) {
-				const reader = new FileReader();
-				reader.onload = function(e) {
-					document.getElementById('locate').innerText = '';
-					const pix = document.getElementById('pix');
-					pix.src = e.target.result;
-					pix.style.visibility = 'visible';
-				};
-				reader.readAsDataURL(event.target.files[0]);
-			}
-		});
+		document.getElementById('pixBtn').addEventListener('change', this.handlePixChange);
+	}
+	componentDidUpdate() {
+		if (this.props.pix.pixUrlAsImageUrl) {
+			this.setState({ pixURL: localStorage.getItem('pixURL') });
+			this.props.unsetPixUrlAsImageUrl();
+		}
 	}
 	rotateBtn() {
 		const btn = document.getElementsByClassName('fa-plus')[0];
@@ -74,6 +129,47 @@ class ModalsAndSiderbars extends Component {
 	render() {
 		const { errors } = this.state;
 		const { boardCreated, board } = this.props.board;
+		const { pixUploaded } = this.props.pix;
+		const { messageSent, messages } = this.props.message;
+		let messageList = [];
+		if (messages) {
+			for (let i = 0; i < messages.messagesReceived.length; i++) {
+				messageList.push(
+					<div key={i}>
+						<div>
+							<p>
+								<strong>
+									@{messages.messagesReceived[i].user.username}
+									<button
+										type="button"
+										className="btn btn-primary ml-2"
+										data-toggle="modal"
+										data-target="#viewMessageModal"
+										onClick={() => {
+											this.setState({
+												sender: messages.messagesReceived[i].user.username,
+												mainMessage: messages.messagesReceived[i].message
+											});
+										}}
+									>
+										View
+									</button>
+								</strong>
+							</p>
+							<p>
+								{messages.messagesReceived[i].message.length > 110 ? (
+									messages.messagesReceived[i].message.slice(0, 110) + '...'
+								) : (
+									messages.messagesReceived[i].message
+								)}
+							</p>
+						</div>
+						<hr />
+					</div>
+				);
+			}
+		}
+
 		let boardOptions = [];
 		if (board) {
 			for (let i = 0; i < board.data.length; i++) {
@@ -91,63 +187,7 @@ class ModalsAndSiderbars extends Component {
 						<h1>Inbox</h1>
 					</div>
 					<div style={{ height: '30vh', overflowY: 'scroll' }} className="msg-sidebar-content">
-						<div>
-							<p>
-								<strong>
-									@johan_liebert<button
-										type="button"
-										className="btn btn-primary ml-2"
-										data-toggle="modal"
-										data-target="#viewMessageModal"
-									>
-										View
-									</button>
-								</strong>
-							</p>
-							<p>
-								Lorem ipsum, dolor sit amet consectetur adipisicing elit. Reiciendis quisquam aliquid
-								voluptas.
-							</p>
-						</div>
-						<hr />
-						<div>
-							<p>
-								<strong>
-									@garry_host<button
-										type="button"
-										className="btn btn-primary ml-2"
-										data-toggle="modal"
-										data-target="#viewMessageModal"
-									>
-										View
-									</button>
-								</strong>
-							</p>
-							<p>
-								Lorem ipsum, dolor sit amet consectetur adipisicing elit. Reiciendis quisquam aliquid
-								voluptas.
-							</p>
-						</div>
-						<hr />
-						<div>
-							<p>
-								<strong>
-									@mayank<button
-										type="button"
-										className="btn btn-primary ml-2"
-										data-toggle="modal"
-										data-target="#viewMessageModal"
-									>
-										View
-									</button>
-								</strong>
-							</p>
-							<p>
-								Lorem ipsum, dolor sit amet consectetur adipisicing elit. Reiciendis quisquam aliquid
-								voluptas.
-							</p>
-						</div>
-						<hr />
+						{messageList.length > 0 ? messageList : <h3>No Messages</h3>}
 					</div>
 					<div
 						style={{ display: 'flex', justifyContent: 'center', width: '25vw' }}
@@ -169,13 +209,7 @@ class ModalsAndSiderbars extends Component {
 						</button>
 					</div>
 				</div>
-
 				<div className="sidebar" id="settingsSidebar">
-					<div className="settingsidebar-btn">
-						<Link to="" className="btn btn-info">
-							Edit Profile
-						</Link>
-					</div>
 					<div className="settingsidebar-btn">
 						<button type="button" className="btn btn-info" onClick={this.onLogoutClick}>
 							Logout <i className="fas fa-sign-out-alt" />
@@ -204,29 +238,54 @@ class ModalsAndSiderbars extends Component {
 							<div className="modal-body">
 								<form>
 									<div className="form-group">
+										{messageSent ? (
+											<div className="text-success mt-2">Message Sent Successfully!!</div>
+										) : null}
 										<label htmlFor="to" className="col-form-label">
 											To:
 										</label>
 										<input
 											type="text"
-											className="form-control"
-											id="to"
-											placeholder="@Username or Email"
+											className={classnames('form-control', {
+												'is-invalid': errors.username
+											})}
+											name="receiver"
+											value={this.state.receiver}
+											onChange={this.handleChange}
+											placeholder="@Username"
 										/>
+										{errors.username && <div className="invalid-feedback">{errors.username}</div>}
 									</div>
 									<div className="form-group">
 										<label htmlFor="message-text" className="col-form-label">
 											Message:
 										</label>
-										<textarea className="form-control" id="message-text" placeholder="Message" />
+										<textarea
+											className={classnames('form-control', {
+												'is-invalid': errors.message
+											})}
+											name="message"
+											placeholder="Message"
+											value={this.state.message}
+											onChange={this.handleChange}
+										/>
+										{errors.message && <div className="invalid-feedback">{errors.message}</div>}
 									</div>
 								</form>
 							</div>
 							<div className="modal-footer">
-								<button type="button" className="btn btn-danger" data-dismiss="modal">
+								<button
+									type="button"
+									className="btn btn-danger"
+									data-dismiss="modal"
+									onClick={() => {
+										this.props.unsetMessageSent();
+										this.setState({ message: '', username: '' });
+									}}
+								>
 									Close
 								</button>
-								<button type="button" className="btn btn-primary">
+								<button onClick={this.sendMessage} type="button" className="btn btn-primary">
 									Send message
 								</button>
 							</div>
@@ -237,16 +296,12 @@ class ModalsAndSiderbars extends Component {
 					<div className="modal-dialog modal-dialog-centered modal-lg">
 						<div className="modal-content">
 							<div className="modal-header">
-								<h3 className="modal-title">@johan_liebert</h3>
+								<h3 className="modal-title">@{this.state.sender}</h3>
 								<button type="button" className="close" data-dismiss="modal">
 									&times;
 								</button>
 							</div>
-							<div className="modal-body">
-								Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam modi reprehenderit
-								provident, culpa obcaecati molestiae ea, at esse molestias deleniti error delectus,
-								neque temporibus quibusdam quia tenetur soluta non natus.
-							</div>
+							<div className="modal-body">{this.state.mainMessage}</div>
 							<div className="modal-footer">
 								<button type="button" className="btn btn-danger" data-dismiss="modal">
 									Close
@@ -269,7 +324,12 @@ class ModalsAndSiderbars extends Component {
 								<button type="button" className="btn btn-primary" data-dismiss="modal">
 									Cancel
 								</button>
-								<button type="button" className="btn btn-danger" data-dismiss="modal">
+								<button
+									onClick={this.deleteAccount}
+									type="button"
+									className="btn btn-danger"
+									data-dismiss="modal"
+								>
 									Yes, Delete My Account
 								</button>
 							</div>
@@ -359,10 +419,21 @@ class ModalsAndSiderbars extends Component {
 								<div className="container">
 									<div className="row">
 										<div className="col-12">
-											<select className="custom-select" id="boardOptions">
+											{pixUploaded ? (
+												<div className="text-success my-2">Pix Uploaded!!</div>
+											) : null}
+											<select
+												className={classnames('custom-select form-control', {
+													'is-invalid': errors.boardNotFound
+												})}
+												id="boardOptions"
+											>
 												<option defaultValue>Save to Board</option>
 												{boardOptions}
 											</select>
+											{errors.boardNotFound && (
+												<div className="invalid-feedback">{errors.boardNotFound}</div>
+											)}
 										</div>
 									</div>
 									<div className="row mt-4">
@@ -373,7 +444,7 @@ class ModalsAndSiderbars extends Component {
 												name="pixTitle"
 												value={this.state.pixTitle}
 												onChange={this.handleChange}
-												placeholder="Pix Title"
+												placeholder="Pix Title (Optional)"
 											/>
 										</div>
 									</div>
@@ -381,12 +452,16 @@ class ModalsAndSiderbars extends Component {
 										<div className="col-12">
 											<input
 												type="text"
-												className="form-control"
+												className={classnames('form-control', {
+													'is-invalid': errors.image
+												})}
+												id="pixURL"
 												name="pixURL"
 												value={this.state.pixURL}
 												onChange={this.handleChange}
 												placeholder="Pix URL"
 											/>
+											{errors.image && <div className="invalid-feedback">{errors.image}</div>}
 										</div>
 									</div>
 									<div className="row mt-4 justify-content-center">
@@ -421,10 +496,15 @@ class ModalsAndSiderbars extends Component {
 								</div>
 							</div>
 							<div className="modal-footer">
-								<button type="button" className="btn btn-primary" data-dismiss="modal">
+								<button
+									type="button"
+									className="btn btn-primary"
+									data-dismiss="modal"
+									onClick={this.cancelPix}
+								>
 									Cancel
 								</button>
-								<button type="button" className="btn btn-success" data-dismiss="modal">
+								<button type="button" className="btn btn-success" onClick={this.uploadPix}>
 									Upload
 								</button>
 							</div>
@@ -440,14 +520,30 @@ ModalsAndSiderbars.propTypes = {
 	logoutUser: PropTypes.func.isRequired,
 	createBoard: PropTypes.func.isRequired,
 	errors: PropTypes.object.isRequired,
-	board: PropTypes.object.isRequired
+	board: PropTypes.object.isRequired,
+	pix: PropTypes.object.isRequired,
+	message: PropTypes.object.isRequired
 };
 
 const mapStateToProps = (state) => ({
 	errors: state.errors,
-	board: state.board
+	board: state.board,
+	pix: state.pix,
+	message: state.message
 });
 
-export default connect(mapStateToProps, { logoutUser, createBoard, getUserBoard, cancelBoardCreated, cancelTitle })(
-	withRouter(ModalsAndSiderbars)
-);
+export default connect(mapStateToProps, {
+	logoutUser,
+	createBoard,
+	getUserBoard,
+	cancelBoardCreated,
+	cancelTitle,
+	uploadPix,
+	cancelPixUpload,
+	getUserPix,
+	unsetPixUrlAsImageUrl,
+	deleteAccount,
+	getMessage,
+	sendMessage,
+	unsetMessageSent
+})(withRouter(ModalsAndSiderbars));

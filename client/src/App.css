@@ -190,6 +190,14 @@ input:focus {
 	color: #e0115f;
 }
 
+.liked {
+	color: #e0115f;
+}
+
+.liked:hover {
+	color: #e0115f;
+}
+
 .sidebar {
 	z-index: 10;
 	display: flex;

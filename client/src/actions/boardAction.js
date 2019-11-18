@@ -5,7 +5,9 @@ import {
 	USER_LIKED_BOARD_LOADING,
 	GET_LIKED_BOARD,
 	GET_ERRORS,
+	GET_COMPLETE_BOARD,
 	BOARD_CREATED,
+	COMPLETE_BOARD_LOADING,
 	CANCEL_BOARD_CREATED
 } from './types';
 
@@ -42,6 +44,30 @@ export const getUserBoard = () => (dispatch) => {
 				payload: {}
 			});
 		});
+};
+
+export const getCompleteBoard = (boardID) => (dispatch) => {
+	dispatch(setCompleteBoardLoading());
+	axios
+		.get(`board/complete/${boardID}`)
+		.then((res) => {
+			dispatch({
+				type: GET_COMPLETE_BOARD,
+				payload: res.data
+			});
+		})
+		.catch(() => {
+			dispatch({
+				type: GET_COMPLETE_BOARD,
+				payload: {}
+			});
+		});
+};
+
+export const setCompleteBoardLoading = () => {
+	return {
+		type: COMPLETE_BOARD_LOADING
+	};
 };
 
 export const getUserLikedBoards = () => (dispatch) => {

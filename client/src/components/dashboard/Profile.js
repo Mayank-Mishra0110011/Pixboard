@@ -232,7 +232,7 @@ class Profile extends Component {
 							<Link
 								className="col-lg-3 col-md-3 col-sm-5 col-10 board mt-5 text-decoration-none text-dark"
 								style={{ minWidth: '10rem' }}
-								to=""
+								to={`/Board/${board.data[i]._id}`}
 								key={i}
 							>
 								<div className="row mt-2 px-1">
@@ -248,7 +248,7 @@ class Profile extends Component {
 						boardColumnLinks.push(
 							<Link
 								className="col-lg-3 col-md-3 col-sm-5 col-10 board mt-5 text-decoration-none text-dark"
-								to=""
+								to={`/Board/${board.data[i]._id}`}
 								key={i}
 							>
 								<div className="row mt-2 px-1">

@@ -4,7 +4,7 @@ import { GET_SEARCH_RESULTS, SEARCH_RESULTS_LOADING } from './types';
 export const getSearchResults = (page, query) => (dispatch) => {
 	dispatch(setSearchResultLoading());
 	axios
-		.get(`search/${page}/${query}`)
+		.get(`search/${query}`)
 		.then((res) => {
 			dispatch({
 				type: GET_SEARCH_RESULTS,
@@ -22,7 +22,7 @@ export const getSearchResults = (page, query) => (dispatch) => {
 export const getDashboardSearchResults = (page, query) => (dispatch) => {
 	dispatch(setSearchResultLoading());
 	axios
-		.get(`search/dashboard/${page}/${query}`)
+		.get(`search/dashboard/${query}`)
 		.then((res) => {
 			dispatch({
 				type: GET_SEARCH_RESULTS,

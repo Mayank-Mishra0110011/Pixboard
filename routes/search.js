@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const user = require('../models/User');
 const passport = require('passport');
-const request = require('request');
+const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 
-//@route GET search/:page/:q
+//@route GET search/:q
 //@desc GET image search results including profile names that match query
 //@access Private
-router.get('/:page/:q', passport.authenticate('jwt', { session: false }), (req, res) => {
+router.get('/:q', passport.authenticate('jwt', { session: false }), (req, res) => {
 	user
 		.find({ username: new RegExp(req.params.q) }, [
 			'username',
@@ -18,7 +18,7 @@ router.get('/:page/:q', passport.authenticate('jwt', { session: false }), (req, 
 			'boards'
 		])
 		.then((users) => {
-			getImage(req.params.q, req.params.page)
+			getImage(req.params.q)
 				.then((data) => {
 					res.json({ data: data, users: users });
 				})
@@ -28,11 +28,11 @@ router.get('/:page/:q', passport.authenticate('jwt', { session: false }), (req, 
 		});
 });
 
-//@route GET search/dashboard/:page/:q
+//@route GET search/dashboard/:q
 //@desc GET images for the dashboard
 //@access Private
-router.get('/dashboard/:page/:q', passport.authenticate('jwt', { session: false }), (req, res) => {
-	getImage(req.params.q, req.params.page)
+router.get('/dashboard/:q', passport.authenticate('jwt', { session: false }), (req, res) => {
+	getImage(req.params.q)
 		.then((data) => {
 			res.json({ data });
 		})
@@ -41,22 +41,41 @@ router.get('/dashboard/:page/:q', passport.authenticate('jwt', { session: false 
 		});
 });
 
-function getImage(searchQuery, pageIndex) {
-	return new Promise((resolve, reject) => {
-		request(`https://imgur.com/search/score/all/page/${pageIndex}?scrolled&q=${searchQuery}`, (err, res, html) => {
-			if (err) {
-				reject(err);
-			} else if (res.statusCode == 200) {
-				const $ = cheerio.load(html);
-				const imgCards = $('.cards').html();
-				let imgURLs;
-				if (imgCards) {
-					imgURLs = imgCards
-						.match(/src\s*=\s*"(.+?)"/g)
-						.map((url) => 'https:' + url.slice(5, url.length - 4) + 'gif');
+async function getImage(searchQuery) {
+	try {
+		const browser = await puppeteer.launch();
+		const page = await browser.newPage();
+		await page.goto(`https://in.pinterest.com/search/pins/?q=${searchQuery}`);
+		await autoScroll(page);
+		const body = await page.evaluate(() => {
+			return document.querySelector('body').innerHTML;
+		});
+		const $ = cheerio.load(body);
+		const imgURLs = [];
+		$('img').each(function(i, img) {
+			imgURLs.push($(img).attr('src'));
+		});
+		await browser.close();
+		return Promise.resolve(imgURLs);
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+async function autoScroll(page) {
+	await page.evaluate(async () => {
+		await new Promise((resolve, reject) => {
+			let totalHeight = 0;
+			let distance = 100;
+			let timer = setInterval(() => {
+				let scrollHeight = 2000;
+				window.scrollBy(0, distance);
+				totalHeight += distance;
+				if (totalHeight >= scrollHeight) {
+					clearInterval(timer);
+					resolve();
 				}
-				resolve(imgURLs);
-			}
+			}, 100);
 		});
 	});
 }

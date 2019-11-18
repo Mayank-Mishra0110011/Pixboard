@@ -4,12 +4,16 @@ import {
 	GET_LIKED_BOARD,
 	USER_LIKED_BOARD_LOADING,
 	BOARD_CREATED,
+	COMPLETE_BOARD_LOADING,
+	GET_COMPLETE_BOARD,
 	CANCEL_BOARD_CREATED
 } from '../actions/types';
 
 const intialState = {
 	likedBoard: null,
 	board: null,
+	completeBoard: null,
+	completeBoardLoading: false,
 	boardLoading: false,
 	likedBoardLoading: false,
 	boardCreated: false
@@ -21,6 +25,17 @@ export default function(state = intialState, action) {
 			return {
 				...state,
 				boardLoading: true
+			};
+		case GET_COMPLETE_BOARD:
+			return {
+				...state,
+				completeBoard: action.payload,
+				completeBoardLoading: false
+			};
+		case COMPLETE_BOARD_LOADING:
+			return {
+				...state,
+				completeBoardLoading: true
 			};
 		case USER_LIKED_BOARD_LOADING:
 			return {

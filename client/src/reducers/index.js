@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux';
 import authReducer from './authReducer';
 import errorReducer from './errorReducer';
+import messageReducer from './messageReducer';
 import pixReducer from './pixReducer';
 import boardReducer from './boardReducer';
 import profileReducer from './profileReducer';
@@ -14,5 +15,6 @@ export default combineReducers({
 	board: boardReducer,
 	errors: errorReducer,
 	search: searchReducer,
-	externalPix: externalPixReducer
+	externalPix: externalPixReducer,
+	message: messageReducer
 });
