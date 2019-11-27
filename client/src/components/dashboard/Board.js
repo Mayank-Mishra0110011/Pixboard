@@ -11,6 +11,9 @@ class Board extends Component {
 		this.pixClickHandler = this.pixClickHandler.bind(this);
 	}
 	componentDidMount() {
+		if (this.props.location.state) {
+			this.props.history.replace({ state: this.props.location.state });
+		}
 		const objectID = this.props.location.state.boardID;
 		this.props.getCompleteBoard(objectID);
 	}

@@ -44,18 +44,15 @@ class Pix extends Component {
 		if (this.props.externalPix.externalPix) {
 			localStorage.setItem('pixURL', this.props.externalPix.externalPix);
 		}
+		if (this.props.location.state) {
+			this.props.history.replace({ state: this.props.location.state });
+		}
 		this.props.getCurrentUserProfile();
 		this.props.loadAnonymousPix(localStorage.getItem('pixURL'));
 	}
 	goBack() {
 		const route = localStorage.getItem('backTo');
-		let objectID;
-		// This trick does not work if page is refreshed
-		// Store ObjectID in localStorage maybe
-		// Same fix needs to be applied to Board.js
-		if (this.props.location.state) {
-			objectID = this.props.location.state.boardID;
-		}
+		const objectID = this.props.location.state.boardID;
 		this.props.history.push(route);
 		if (objectID) {
 			this.props.history.location.state = { boardID: objectID };
