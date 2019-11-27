@@ -45,7 +45,7 @@ async function getImage(searchQuery) {
 	try {
 		const browser = await puppeteer.launch();
 		const page = await browser.newPage();
-		await page.goto(`https://in.pinterest.com/search/pins/?q=${searchQuery}`);
+		await page.goto(`https://pinterest.com/search/pins/?q=${searchQuery}`);
 		await autoScroll(page);
 		const body = await page.evaluate(() => {
 			return document.querySelector('body').innerHTML;

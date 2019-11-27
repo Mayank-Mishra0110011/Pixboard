@@ -49,7 +49,17 @@ class Pix extends Component {
 	}
 	goBack() {
 		const route = localStorage.getItem('backTo');
+		let objectID;
+		// This trick does not work if page is refreshed
+		// Store ObjectID in localStorage maybe
+		// Same fix needs to be applied to Board.js
+		if (this.props.location.state) {
+			objectID = this.props.location.state.boardID;
+		}
 		this.props.history.push(route);
+		if (objectID) {
+			this.props.history.location.state = { boardID: objectID };
+		}
 	}
 	like(id, event) {
 		event.preventDefault();
@@ -167,6 +177,23 @@ class Pix extends Component {
 									</button>
 								</div>
 							</div>
+							{anonymousPix.username && anonymousPix.profilePicture ? (
+								<div className="row justify-content-center">
+									<div className="col-1">
+										<Link to="">
+											<img
+												src={anonymousPix.profilePicture}
+												className="img-fluid rounded-circle"
+												alt="profilePicture"
+											/>
+										</Link>
+									</div>
+									<div className="col-7">
+										<h4>Posted by: </h4>
+										<p>@{anonymousPix.username}</p>
+									</div>
+								</div>
+							) : null}
 							<div className="row justify-content-center">
 								<div className="col-8">
 									<img src={imgSrc} className="img-fluid mb-4 img-container" alt="pix" />

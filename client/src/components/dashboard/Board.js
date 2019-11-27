@@ -1,126 +1,77 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import Spinner from '../layout/Spinner';
 import { connect } from 'react-redux';
+import { setExternalPix } from '../../actions/externalPixAction';
 import { getCompleteBoard } from '../../actions/boardAction';
 
 class Board extends Component {
+	constructor() {
+		super();
+		this.pixClickHandler = this.pixClickHandler.bind(this);
+	}
 	componentDidMount() {
-		const objectID = this.props.location.pathname.split('/')[2];
+		const objectID = this.props.location.state.boardID;
 		this.props.getCompleteBoard(objectID);
+	}
+	pixClickHandler(event) {
+		event.preventDefault();
+		this.props.setExternalPix(event.target.src);
+		localStorage.setItem('backTo', window.location.href.split('/').pop());
+		const objectID = this.props.location.state.boardID;
+		this.props.history.push('/Pix');
+		this.props.history.location.state = { boardID: objectID };
 	}
 	render() {
 		const { completeBoard, completeBoardLoading } = this.props.board;
-		console.log(completeBoard, completeBoardLoading);
-
+		let pixLinks = [],
+			boardContent = [];
+		if (completeBoard) {
+			for (let i = 0; i < completeBoard.board.pix.length; i++) {
+				pixLinks.push(
+					<a href="/Pix" key={i} onClick={this.pixClickHandler}>
+						<img
+							src={completeBoard.board.pix[i].pix.image}
+							className="img-fluid mb-4 img-container"
+							alt="pix"
+						/>
+					</a>
+				);
+				if (
+					(i % 2 === 0 && i !== 0 && i < 3) ||
+					(i % 3 === 0 && i > 3) ||
+					i === completeBoard.board.pix.length - 1
+				) {
+					boardContent.push(
+						<div className="col-lg-3 col-md-6" key={i}>
+							{pixLinks}
+						</div>
+					);
+					pixLinks = [];
+				}
+			}
+		}
 		return (
 			<div className="container">
-				<div className="row">
-					<div className="col-md-12 my-5">
-						<div className="card card-body bg-light mb-3">
-							<div className="container">
-								<div className="row justify-content-center">
-									<h1>Board Title</h1>
-								</div>
-								<hr />
-								<div className="row">
-									<div className="col-lg-3 col-md-6">
-										<Link to="">
-											<img
-												src="https://cdn-ep19.pressidium.com/wp-content/uploads/2019/07/photography-aesthetic-bridge-landscape-at-blue-hour.jpg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-										<Link to="">
-											<img
-												src="https://66.media.tumblr.com/26d3c7f3b0b850f630d6038f1280978a/tumblr_p0jxiknQux1u3tdofo1_400.jpg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-										<Link to="">
-											<img
-												src="https://www.elsetge.cat/myimg/f/5-55807_hong-kong-city-neon-city-aesthetic-red-neon.jpg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
+				{completeBoardLoading ? (
+					<Spinner />
+				) : completeBoard ? (
+					<div className="row">
+						<div className="col-md-12 my-5">
+							<div className="card card-body bg-light mb-3">
+								<div className="container">
+									<div className="row justify-content-center">
+										<h1>{completeBoard.board.title}</h1>
 									</div>
-									<div className="col-lg-3 col-md-6">
-										<Link to="">
-											<img
-												src="https://66.media.tumblr.com/b0b21fca30158fc6552a30f6b8fa9fcd/tumblr_pfp8laZ8031sd8vlq_540.jpg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-										<Link to="">
-											<img
-												src="https://i.pinimg.com/736x/bd/14/41/bd1441b34595070ac3f1e95ddaca02ca.jpg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-										<Link to="">
-											<img
-												src="https://www.economist.com/sites/default/files/20180407_BLP504.jpg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-									</div>
-									<div className="col-lg-3 col-md-6">
-										<Link to="">
-											<img
-												src="https://miro.medium.com/max/12408/1*gJJ3Z3rTDVy0KbP2m7h_dQ.jpeg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-										<Link to="">
-											<img
-												src="https://media-cdn.tripadvisor.com/media/photo-s/07/1b/99/35/wc-harlan.jpg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-										<Link to="">
-											<img
-												src="https://theminimalistvegan.com/wp-content/uploads/2018/08/The-Curse-of-The-Minimalist-Aesthetic-e1534243052697.jpg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-									</div>
-									<div className="col-lg-3 col-md-6">
-										<Link to="">
-											<img
-												src="https://66.media.tumblr.com/9ec80f6957eeef5ce742f9822ae84c28/tumblr_oyas2o9mNF1w0qmx4o1_400.jpg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-										<Link to="">
-											<img
-												src="http://s12.favim.com/orig/161116/aesthetic-alternative-boy-cigarette-Favim.com-4874207.jpeg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-										<Link to="">
-											<img
-												src="http://s12.favim.com/orig/161116/aesthetic-alternative-boy-cigarette-Favim.com-4874207.jpeg"
-												className="img-fluid mb-4 img-container"
-												alt="pix"
-											/>
-										</Link>
-									</div>
+									<hr />
+									<div className="row">{boardContent}</div>
 								</div>
 							</div>
 						</div>
 					</div>
-				</div>
+				) : (
+					<Spinner />
+				)}
 			</div>
 		);
 	}
@@ -135,5 +86,6 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, {
-	getCompleteBoard
+	getCompleteBoard,
+	setExternalPix
 })(Board);

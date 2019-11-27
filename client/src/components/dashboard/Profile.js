@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { getCurrentUserProfile } from '../../actions/profileAction';
 import { getUserPix, getUserLikedPix } from '../../actions/pixAction';
 import { getUserBoard, getUserLikedBoards } from '../../actions/boardAction';
+import { setExternalPix } from '../../actions/externalPixAction';
 import ModlasAndSidebars from '../layout/ModalsAndSiderbars';
 
 class Profile extends Component {
@@ -15,6 +16,7 @@ class Profile extends Component {
 			selectedBtn: 'boards'
 		};
 		this.clickHandler = this.clickHandler.bind(this);
+		this.pixClickHandler = this.pixClickHandler.bind(this);
 	}
 	clickHandler(event) {
 		window.$(event.target).addClass('active');
@@ -35,6 +37,12 @@ class Profile extends Component {
 			default:
 				break;
 		}
+	}
+	pixClickHandler(event) {
+		event.preventDefault();
+		this.props.setExternalPix(event.target.src);
+		localStorage.setItem('backTo', window.location.href.split('/').pop());
+		this.props.history.push('/Pix');
 	}
 	componentDidMount() {
 		this.props.getUserPix();
@@ -77,43 +85,43 @@ class Profile extends Component {
 					k = 0;
 				for (i = 0; i < likedPix.pixData.length - 4; i += 4) {
 					likedPixLinks[0].push(
-						<Link to="" key={i}>
+						<a href="/Pix" key={i} onClick={this.pixClickHandler}>
 							<img src={likedPix.pixData[i].image} className="img-fluid mb-4 img-container" alt="pix" />
-						</Link>
+						</a>
 					);
 					likedPixLinks[1].push(
-						<Link to="" key={i + 1}>
+						<a href="/Pix" key={i + 1} onClick={this.pixClickHandler}>
 							<img
 								src={likedPix.pixData[i + 1].image}
 								className="img-fluid mb-4 img-container"
 								alt="pix"
 							/>
-						</Link>
+						</a>
 					);
 					likedPixLinks[2].push(
-						<Link to="" key={i + 2}>
+						<a href="/Pix" key={i + 2} onClick={this.pixClickHandler}>
 							<img
 								src={likedPix.pixData[i + 2].image}
 								className="img-fluid mb-4 img-container"
 								alt="pix"
 							/>
-						</Link>
+						</a>
 					);
 					likedPixLinks[3].push(
-						<Link to="" key={i + 3}>
+						<a href="/Pix" key={i + 3} onClick={this.pixClickHandler}>
 							<img
 								src={likedPix.pixData[i + 3].image}
 								className="img-fluid mb-4 img-container"
 								alt="pix"
 							/>
-						</Link>
+						</a>
 					);
 				}
 				while (i < likedPix.pixData.length) {
 					likedPixLinks[k].push(
-						<Link to="" key={i}>
+						<a href="/Pix" key={i} onClick={this.pixClickHandler}>
 							<img src={likedPix.pixData[i].image} className="img-fluid mb-4 img-container" alt="pix" />
-						</Link>
+						</a>
 					);
 					i++;
 					k++;
@@ -136,31 +144,31 @@ class Profile extends Component {
 					k = 0;
 				for (i = 0; i < pix.pixData.length - 4; i += 4) {
 					pixLinks[0].push(
-						<Link to="" key={i}>
+						<a href="/Pix" key={i} onClick={this.pixClickHandler}>
 							<img src={pix.pixData[i].image} className="img-fluid mb-4 img-container" alt="pix" />
-						</Link>
+						</a>
 					);
 					pixLinks[1].push(
-						<Link to="" key={i + 1}>
+						<a href="/Pix" key={i + 1} onClick={this.pixClickHandler}>
 							<img src={pix.pixData[i + 1].image} className="img-fluid mb-4 img-container" alt="pix" />
-						</Link>
+						</a>
 					);
 					pixLinks[2].push(
-						<Link to="" key={i + 2}>
+						<a href="/Pix" key={i + 2} onClick={this.pixClickHandler}>
 							<img src={pix.pixData[i + 2].image} className="img-fluid mb-4 img-container" alt="pix" />
-						</Link>
+						</a>
 					);
 					pixLinks[3].push(
-						<Link to="" key={i + 3}>
+						<a href="/Pix" key={i + 3} onClick={this.pixClickHandler}>
 							<img src={pix.pixData[i + 3].image} className="img-fluid mb-4 img-container" alt="pix" />
-						</Link>
+						</a>
 					);
 				}
 				while (i < pix.pixData.length) {
 					pixLinks[k].push(
-						<Link to="" key={i}>
+						<a href="/Pix" key={i} onClick={this.pixClickHandler}>
 							<img src={pix.pixData[i].image} className="img-fluid mb-4 img-container" alt="pix" />
-						</Link>
+						</a>
 					);
 					i++;
 					k++;
@@ -190,7 +198,7 @@ class Profile extends Component {
 					likedBoardColumnLinks.push(
 						<Link
 							className="col-lg-3 col-md-3 col-sm-5 col-10 board mt-5 text-decoration-none text-dark"
-							to=""
+							to={{ pathname: '/Board', state: { boardID: likedBoard.data[i]._id } }}
 							key={i}
 						>
 							<div className="row mt-2 px-1">
@@ -232,7 +240,7 @@ class Profile extends Component {
 							<Link
 								className="col-lg-3 col-md-3 col-sm-5 col-10 board mt-5 text-decoration-none text-dark"
 								style={{ minWidth: '10rem' }}
-								to={`/Board/${board.data[i]._id}`}
+								to={{ pathname: '/Board', state: { boardID: board.data[i]._id } }}
 								key={i}
 							>
 								<div className="row mt-2 px-1">
@@ -248,7 +256,7 @@ class Profile extends Component {
 						boardColumnLinks.push(
 							<Link
 								className="col-lg-3 col-md-3 col-sm-5 col-10 board mt-5 text-decoration-none text-dark"
-								to={`/Board/${board.data[i]._id}`}
+								to={{ pathname: '/Board', state: { boardID: board.data[i]._id } }}
 								key={i}
 							>
 								<div className="row mt-2 px-1">
@@ -442,5 +450,6 @@ export default connect(mapStateToProps, {
 	getUserPix,
 	getUserBoard,
 	getUserLikedPix,
-	getUserLikedBoards
+	getUserLikedBoards,
+	setExternalPix
 })(Profile);
