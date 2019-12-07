@@ -52,7 +52,10 @@ class Pix extends Component {
 	}
 	goBack() {
 		const route = localStorage.getItem('backTo');
-		const objectID = this.props.location.state.boardID;
+		let objectID;
+		if (this.props.location.state && this.props.location.state.boardID) {
+			objectID = this.props.location.state.boardID;
+		}
 		this.props.history.push(route);
 		if (objectID) {
 			this.props.history.location.state = { boardID: objectID };
