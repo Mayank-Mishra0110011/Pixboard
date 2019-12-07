@@ -59,6 +59,7 @@ class Dashboard extends Component {
 			);
 		} else {
 			if (searchResult) {
+				console.log(searchResult);
 				if (searchResult.users && searchResult.users.length > 0) {
 					let k;
 					for (k = 0; k < searchResult.users.length - 1; k += 2) {
@@ -291,7 +292,7 @@ class Dashboard extends Component {
 				if (!renderComponent && !renderComponentProfiles) {
 					renderComponent = (
 						<div>
-							<NoResult />;
+							<NoResult />
 						</div>
 					);
 				}
