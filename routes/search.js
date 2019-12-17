@@ -34,7 +34,7 @@ router.get('/:q', passport.authenticate('jwt', { session: false }), (req, res) =
 router.get('/dashboard/:q', passport.authenticate('jwt', { session: false }), (req, res) => {
 	getImage(req.params.q)
 		.then((data) => {
-			res.json({ data });
+			res.json({ data: data });
 		})
 		.catch((err) => {
 			console.log(err);
@@ -43,7 +43,7 @@ router.get('/dashboard/:q', passport.authenticate('jwt', { session: false }), (r
 
 async function getImage(searchQuery) {
 	try {
-		const browser = await puppeteer.launch();
+		const browser = await puppeteer.launch({ args: [ '--no-sandbox' ] });
 		const page = await browser.newPage();
 		await page.goto(`https://pinterest.com/search/pins/?q=${searchQuery}`);
 		await autoScroll(page);
